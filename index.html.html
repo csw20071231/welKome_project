@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>welKome - Smart Korea Tourism Platform</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    .no-scrollbar::-webkit-scrollbar,
+    .welkome-scroll-hide::-webkit-scrollbar { display: none; }
+    .no-scrollbar,
+    .welkome-scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-[#EDE9FE] antialiased">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Lucide Icon Wrapper for Standalone HTML
+    const LucideIcon = ({ name, className = "w-4 h-4" }) => {
+      const ref = React.useRef(null);
+      useEffect(() => {
+        if (ref.current && window.lucide && window.lucide.icons[name]) {
+          const svg = window.lucide.createElement(window.lucide.icons[name]);
+          svg.setAttribute("class", className);
+          ref.current.innerHTML = "";
+          ref.current.appendChild(svg);
+        }
+      }, [name, className]);
+      return <span ref={ref} className="inline-flex items-center justify-center shrink-0" />;
+    };
+
+    const REAL_PHOTOS = {
+      gyeongbokgung: 'https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=1000&q=80',
+      nSeoulTower: 'https://images.unsplash.com/photo-1538485399081-7191377e8241?auto=format&fit=crop&w=1000&q=80',
+      bukchon: 'https://images.unsplash.com/photo-1517154421773-0529f29ea451?auto=format&fit=crop&w=1000&q=80',
+      hongdae: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?auto=format&fit=crop&w=1000&q=80',
+      theHyundai: 'https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?auto=format&fit=crop&w=1000&q=80',
+      lotteDept: 'https://images.unsplash.com/photo-1567449303078-57ad995bd329?auto=format&fit=crop&w=1000&q=80',
+      oliveYoung: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=1000&q=80',
+      daiso: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1000&q=80',
+      coex: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1000&q=80',
+      seongsu: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1000&q=80',
+      convenience: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=1000&q=80',
+    };
+
+    const SafePhoto = ({ src, alt, className }) => {
+      const [imgSrc, setImgSrc] = useState(src);
+      useEffect(() => { setImgSrc(src); }, [src]);
+      return (
+        <img
+          src={imgSrc}
+          alt={alt}
+          className={className}
+          loading="lazy"
+          onError={() => {
+            if (imgSrc !== REAL_PHOTOS.gyeongbokgung) setImgSrc(REAL_PHOTOS.gyeongbokgung);
+          }}
+        />
+      );
+    };
+
+    const WelKomeAppIcon = ({ size = 44 }) => (
+      <svg width={size} height={size} viewBox="0 0 120 120" fill="none" className="shrink-0 drop-shadow-md">
+        <defs>
+          <linearGradient id="welkomeBg" x1="12" y1="8" x2="108" y2="112" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#7C3AED" />
+            <stop offset="55%" stopColor="#5B21B6" />
+            <stop offset="100%" stopColor="#3B28CC" />
+          </linearGradient>
+          <radialGradient id="welkomeGlow" cx="60" cy="52" r="44" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#C4B5FD" stopOpacity="0.45" />
+            <stop offset="100%" stopColor="#5B21B6" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <rect x="4" y="4" width="112" height="112" rx="28" fill="url(#welkomeBg)" />
+        <circle cx="60" cy="52" r="42" fill="url(#welkomeGlow)" />
+        <path d="M24 22L26 28L32 30L26 32L24 38L22 32L16 30L22 28L24 22Z" fill="#FFFFFF" />
+        <path d="M96 34L97.5 38.5L102 40L97.5 41.5L96 46L94.5 41.5L90 40L94.5 38.5L96 34Z" fill="#FFFFFF" />
+        <ellipse cx="60" cy="95" rx="18" ry="4" fill="#1E1B4B" fillOpacity="0.35" />
+        <path d="M60 92C60 92 34 69 34 49C34 34.6 45.6 23 60 23C74.4 23 86 34.6 86 49C86 69 60 92 60 92Z" fill="#FACC15" stroke="#1E1B4B" strokeWidth="4" strokeLinejoin="round" />
+        <ellipse cx="60" cy="27" rx="24" ry="5.5" fill="#1E1B4B" />
+        <path d="M49 26V19C49 16.5 51.5 14.5 55 14.5H65C68.5 14.5 71 16.5 71 19V26H49Z" fill="#1E1B4B" />
+        <circle cx="50" cy="49" r="3.6" fill="#1E1B4B" />
+        <circle cx="49" cy="47.8" r="1.2" fill="#FFFFFF" />
+        <circle cx="70" cy="49" r="3.6" fill="#1E1B4B" />
+        <circle cx="69" cy="47.8" r="1.2" fill="#FFFFFF" />
+        <ellipse cx="43.5" cy="55.5" rx="4.5" ry="2.6" fill="#FB7185" fillOpacity="0.7" />
+        <ellipse cx="76.5" cy="55.5" rx="4.5" ry="2.6" fill="#FB7185" fillOpacity="0.7" />
+        <path d="M54.5 55.5C56.2 58.2 63.8 58.2 65.5 55.5" stroke="#1E1B4B" strokeWidth="3.2" strokeLinecap="round" />
+        <path d="M55 64V76M55 70L63.5 64M58 68.5L64.5 76" stroke="#E11D48" strokeWidth="3.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+
+    const WelKomeWordmark = ({ dark = false, size = 'text-xl' }) => (
+      <span className={`font-black tracking-tight inline-flex items-center ${size}`}>
+        <span className={dark ? 'text-slate-900' : 'text-white'}>wel</span>
+        <span className="text-[#F43F5E] font-black">K</span>
+        <span className={dark ? 'text-slate-900' : 'text-white'}>ome</span>
+        <LucideIcon name="Sparkles" className="w-3.5 h-3.5 text-amber-300 ml-0.5 -mt-2" />
+      </span>
+    );
+
+    const LANGUAGES = [
+      { code: 'en', label: 'English', flag: '🇺🇸' },
+      { code: 'ko', label: '한국어', flag: '🇰🇷' },
+      { code: 'ja', label: '日本語', flag: '🇯🇵' },
+      { code: 'zh-CN', label: '简体中文', flag: '🇨🇳' },
+      { code: 'zh-TW', label: '繁體中文', flag: '🇹🇼' },
+    ];
+
+    const UI_STRINGS = {
+      en: {
+        slogan: 'Welcome to Korea, Welcome to welKome.',
+        heroBanner: 'Make your Korea trip smarter today!',
+        searchPlaceholder: 'Where would you like to go?',
+        navHome: 'Home', navMap: 'Map', navCulture: 'K-Culture', navChat: 'AI Chat', navGlasses: 'AI Glasses', navMyPage: 'My Page',
+        quickNav: 'Navigation', quickSpots: 'Attractions', quickTrans: 'AI Voice', quickFood: 'K-Food', quickTransit: 'Transit', quickCourses: 'Courses',
+        hotSpotTitle: "Gyeongbokgung is today's #1 hotspot!",
+        feedTitle: 'Live Traveler Moments', feedSubtitle: 'Share & react to real Korea travel check-ins', postMomentBtn: '+ Check-in',
+        startNav: 'Start AR Navigation', stepFreeLabel: 'Elevator / Step-Free Route', alleyPhotoLabel: 'Alley Photo Guide', subwayGuideLabel: 'Subway Transfer Guide',
+        cultureLang: 'Language (20)', cultureEtiquette: 'Etiquette (16)', cultureShopping: 'Shopping & Places', findNearMeBtn: 'Find Nearest & Navigate',
+        aiPlaceholder: 'Ask about Hongdae, Daegu itinerary, menus, subway...',
+      },
+      ko: {
+        slogan: 'Welcome to Korea, Welcome to welKome.',
+        heroBanner: '오늘도, 한국 여행을 더 특별하게!',
+        searchPlaceholder: '어디로 가시나요? (Where would you like to go?)',
+        navHome: '홈', navMap: '지도', navCulture: 'K-문화', navChat: 'AI 챗봇', navGlasses: 'AI 안경', navMyPage: '마이페이지',
+        quickNav: '길찾기', quickSpots: '관광지', quickTrans: 'AI 번역', quickFood: '맛집', quickTransit: '교통정보', quickCourses: '추천 코스',
+        hotSpotTitle: '지금, 경복궁이 가장 핫해요!',
+        feedTitle: '여행자 실시간 방문 인증', feedSubtitle: '한국 여행 인증샷을 공유하고 좋아요·댓글로 소통해요', postMomentBtn: '+ 방문 인증',
+        startNav: 'AR 길찾기 시작', stepFreeLabel: '계단 없는 엘리베이터 경로', alleyPhotoLabel: '골목길 사진 안내', subwayGuideLabel: '지하철 환승·출구 안내',
+        cultureLang: '필수 한국어 (20)', cultureEtiquette: '한국 예절·문화 (16)', cultureShopping: '쇼핑 & 명소 길찾기', findNearMeBtn: '내 근처 매장 확인 & 길찾기',
+        aiPlaceholder: '홍대 추천, 대구 코스, 메뉴 번역, 화장실 위치 등 질문해 보세요...',
+      },
+      ja: {
+        slogan: 'Welcome to Korea, Welcome to welKome.',
+        heroBanner: '今日も韓国旅行をもっと特別に！',
+        searchPlaceholder: 'どちらへ行かれますか？',
+        navHome: 'ホーム', navMap: '地図', navCulture: 'K-カルチャー', navChat: 'AIチャット', navGlasses: 'AIメガネ', navMyPage: 'マイページ',
+        quickNav: '道案内', quickSpots: '観光地', quickTrans: 'AI翻訳', quickFood: 'グルメ', quickTransit: '交通情報', quickCourses: 'おすすめ',
+        hotSpotTitle: '今、景福宮が一番人気です！',
+        feedTitle: '旅行者チェックインフィード', feedSubtitle: '韓国旅行の写真をシェアしてリアクションしよう', postMomentBtn: '+ 投稿する',
+        startNav: 'ARナビ開始', stepFreeLabel: 'エレベーター優先ルート', alleyPhotoLabel: '路地裏写真ガイド', subwayGuideLabel: '地下鉄乗換・出口案内',
+        cultureLang: '旅行韓国語 (20)', cultureEtiquette: '韓国マナー (16)', cultureShopping: 'ショッピング・店舗検索', findNearMeBtn: '近くの店舗を検索＆道案内',
+        aiPlaceholder: '弘大おすすめ、大邱コース、メニュー翻訳などを質問...',
+      },
+      'zh-CN': {
+        slogan: 'Welcome to Korea, Welcome to welKome.',
+        heroBanner: '今天也让韩国之旅更加特别！',
+        searchPlaceholder: '您想去哪里？',
+        navHome: '首页', navMap: '地图', navCulture: 'K-文化', navChat: 'AI助手', navGlasses: 'AI眼镜', navMyPage: '我的',
+        quickNav: '路线导航', quickSpots: '热门景点', quickTrans: 'AI翻译', quickFood: '韩国美食', quickTransit: '交通信息', quickCourses: '推荐路线',
+        hotSpotTitle: '现在景福宫最受欢迎！',
+        feedTitle: '游客实时打卡动态', feedSubtitle: '分享韩国旅行打卡照片并互动点赞', postMomentBtn: '+ 发布打卡',
+        startNav: '开始AR导航', stepFreeLabel: '无楼梯电梯路线', alleyPhotoLabel: '小巷实景照片向导', subwayGuideLabel: '地铁换乘及出口指引',
+        cultureLang: '实用韩语 (20)', cultureEtiquette: '韩国礼仪 (16)', cultureShopping: '购物与商圈导航', findNearMeBtn: '查找附近门店并导航',
+        aiPlaceholder: '询问弘大推荐、大邱路线、菜单翻译、洗手间位置...',
+      },
+      'zh-TW': {
+        slogan: 'Welcome to Korea, Welcome to welKome.',
+        heroBanner: '今天也讓韓國之旅更加特別！',
+        searchPlaceholder: '您想去哪裡？',
+        navHome: '首頁', navMap: '地圖', navCulture: 'K-文化', navChat: 'AI助手', navGlasses: 'AI眼鏡', navMyPage: '我的',
+        quickNav: '路線導航', quickSpots: '熱門景點', quickTrans: 'AI翻譯', quickFood: '韓國美食', quickTransit: '交通資訊', quickCourses: '推薦路線',
+        hotSpotTitle: '現在景福宮最受歡迎！',
+        feedTitle: '旅客即時打卡動態', feedSubtitle: '分享韓國旅行打卡照片並互動按讚', postMomentBtn: '+ 發布打卡',
+        startNav: '開始AR導航', stepFreeLabel: '無樓梯電梯路線', alleyPhotoLabel: '小巷實景照片嚮導', subwayGuideLabel: '地鐵轉乘及出口指引',
+        cultureLang: '實用韓語 (20)', cultureEtiquette: '韓國禮儀 (16)', cultureShopping: '購物與商圈導航', findNearMeBtn: '查找附近門市並導航',
+        aiPlaceholder: '詢問弘大推薦、大邱路線、菜單翻譯、洗手間位置...',
+      },
+    };
+
+    const ATTRACTIONS = [
+      {
+        id: 'gyeongbokgung', region: 'Seoul', category: 'History & Heritage', coords: [37.5796, 126.9770], photo: REAL_PHOTOS.gyeongbokgung,
+        name: { en: 'Gyeongbokgung Palace', ko: '경복궁', ja: '景福宮', 'zh-CN': '景福宫', 'zh-TW': '景福宮' },
+        address: '161 Sajik-ro, Jongno-gu, Seoul (서울 종로구 사직로 161)', rating: 4.8, distance: '1.2km', walkTime: '18 min',
+        transitTime: '11 min (Line 3 Exit 5)', subwayInfo: 'Line 3 Gyeongbokgung Station Exit 5 (Elevator at Exit 4)',
+        summary: {
+          en: 'Main royal palace of the Joseon dynasty (1395), renowned for Geunjeongjeon Hall and Gyeonghoeru Pavilion.',
+          ko: '1395년 창건된 조선 왕조의 법궁으로 근정전과 경회루의 웅장한 건축미를 자랑합니다.',
+          ja: '1395年に創建された朝鮮王朝の正宮で、勤政殿や慶会楼の壮大な建築美を誇ります。',
+          'zh-CN': '建于1395年的朝鲜王朝正宫，以宏伟的勤政殿和庆会楼闻名。',
+          'zh-TW': '建於1395年的朝鮮王朝正宮，以宏偉的勤政殿與慶會樓聞名。',
+        },
+        history: 'Built in 1395 by King Taejo, Gyeongbokgung served as the primary seat of royal power for the Joseon Dynasty.',
+        kContent: 'Filming site for Netflix "Kingdom", "My Demon", and BTS "Idol" special performance stage at Geunjeongjeon.',
+        experience: 'Free admission when wearing Hanbok! Royal Guard Changing Ceremony held daily at 10:00 & 14:00.',
+        arWaypoints: [
+          { dist: '120m', instruction: 'Head straight toward Gwanghwamun Gate ahead (정면 광화문 방향으로 직진하세요)' },
+          { dist: '60m', instruction: 'Pass the Woldae stone platform on your left (왼쪽 월대를 지나 이동하세요)' },
+          { dist: '15m', instruction: 'Enter Heungnyemun Ticket Gate ahead (정면 흥례문 입구로 들어가세요)' },
+        ],
+        alleyGuide: [
+          { step: 1, title: 'Gyeongbokgung Station Exit 5 Plaza', desc: 'Exit the glass elevator at Exit 4/5 and face north toward Bugaksan Mountain.' },
+          { step: 2, title: 'Gwanghwamun Front Square', desc: 'Cross the wide crosswalk; the three-arched main gate is directly ahead.' },
+        ],
+      },
+      {
+        id: 'bukchon', region: 'Seoul', category: 'History & Heritage', coords: [37.5826, 126.9830], photo: REAL_PHOTOS.bukchon,
+        name: { en: 'Bukchon Hanok Village', ko: '북촌 한옥마을', ja: '北村韓屋村', 'zh-CN': '北村韩屋村', 'zh-TW': '北村韓屋村' },
+        address: '37 Gyedong-gil, Jongno-gu, Seoul (서울 종로구 계동길 37)', rating: 4.7, distance: '450m', walkTime: '7 min',
+        transitTime: '9 min (Line 3 Anguk Exit 2)', subwayInfo: 'Line 3 Anguk Station Exit 2 -> Walk 300m north up Bukchon-ro',
+        summary: {
+          en: 'Historic residential neighborhood with over 900 preserved traditional Korean wooden houses (Hanok).',
+          ko: '600년 역사를 간직한 서울의 대표 전통 한옥 주거지로 고즈넉한 골목 풍경이 매력적입니다.',
+          ja: '600年の歴史を持つ伝統的な韓屋が並ぶ人気エリアです。',
+          'zh-CN': '拥有600年历史的传统韩屋聚落，可俯瞰首尔全景。',
+          'zh-TW': '擁有600年歷史的傳統韓屋聚落，可俯瞰首爾全景。',
+        },
+        history: 'Historically home to high-ranking Joseon officials and nobility due to its auspicious location between two royal palaces.',
+        kContent: 'Featured in K-dramas "Goblin", "Personal Taste", and "True Beauty".',
+        experience: 'Traditional tea ceremony, mother-of-pearl craft workshop, and Hanbok photo walk.',
+        arWaypoints: [
+          { dist: '180m', instruction: 'Walk past the bakery on your left and go uphill (왼쪽 베이커리를 지나 언덕으로 이동하세요)' },
+          { dist: '50m', instruction: 'Turn right into Bukchon-ro 11-gil stone alley (오른쪽 북촌로11길 골목으로 진입하세요)' },
+        ],
+        alleyGuide: [
+          { step: 1, title: 'Bukchon-ro Pharmacy Corner', desc: 'Look for the green pharmacy sign on the corner and turn right into the tiled-wall alley.' },
+        ],
+      },
+      {
+        id: 'nseoultower', region: 'Seoul', category: 'K-Drama & Night View', coords: [37.5512, 126.9882], photo: REAL_PHOTOS.nSeoulTower,
+        name: { en: 'N Seoul Tower (Namsan)', ko: 'N서울타워 (남산)', ja: 'Nソウルタワー', 'zh-CN': 'N首尔塔', 'zh-TW': 'N首爾塔' },
+        address: '105 Namsangongwon-gil, Yongsan-gu, Seoul (서울 용산구 남산공원길 105)', rating: 4.8, distance: '2.4km', walkTime: '32 min',
+        transitTime: '16 min (Namsan Bus 01A)', subwayInfo: 'Line 3/4 Chungmuro Station Exit 2 -> Eco Bus 01A',
+        summary: {
+          en: 'Iconic 236m communication & observation tower atop Mt. Namsan offering 360° panoramic views of Seoul.',
+          ko: '남산 정상에서 서울 도심 전체를 360도 파노라마로 감상할 수 있는 서울의 랜드마크입니다.',
+          ja: '南山の頂上からソウル市内を360度一望できるランドマークタワーです。',
+          'zh-CN': '位于南山之巅的首尔地标，可360度俯瞰首尔璀璨夜景。',
+          'zh-TW': '位於南山之巔的首爾地標，可360度俯瞰首爾璀璨夜景。',
+        },
+        history: 'Opened in 1980, N Seoul Tower stands 479.7m above sea level.',
+        kContent: 'Romantic date filming spot in "Boys Over Flowers", "My Love from the Star", and "Lovely Runner".',
+        experience: 'Padlocks of Love terrace, Namsan Cable Car ride, and sunset observatory deck.',
+        arWaypoints: [
+          { dist: '210m', instruction: 'Take the wooden deck stairs or inclined elevator up to the plaza (데크 계단 또는 경사 엘리베이터로 이동하세요)' },
+        ],
+        alleyGuide: [{ step: 1, title: 'Namsan Bus Drop-off Plaza', desc: 'Follow the illuminated stone path upward.' }],
+      },
+      {
+        id: 'hongdae', region: 'Seoul', category: 'K-POP & Youth Culture', coords: [37.5563, 126.9237], photo: REAL_PHOTOS.hongdae,
+        name: { en: 'Hongdae Street & Busking Zone', ko: '홍대 걷고싶은거리', ja: '弘大ストリート', 'zh-CN': '弘大步行街', 'zh-TW': '弘大步行街' },
+        address: 'Eoulmadang-ro, Mapo-gu, Seoul (서울 마포구 어울마당로)', rating: 4.7, distance: '5.1km', walkTime: '65 min',
+        transitTime: '19 min (Line 2 / AREX)', subwayInfo: 'Line 2 / AREX Hongik Univ. Station Exit 9',
+        summary: {
+          en: 'Vibrant hub of K-POP street dance covers, indie music busking, trendy cafes, and youth fashion.',
+          ko: 'K-POP 댄스 버스킹, 트렌디한 카페, 개성 넘치는 패션 로드숍이 모인 젊음의 거리입니다.',
+          ja: 'K-POPダンスバスキングやおしゃれなカフェが集まる若者の街です。',
+          'zh-CN': 'K-POP街头舞蹈翻跳、独立音乐表演与潮流咖啡馆聚集地。',
+          'zh-TW': 'K-POP街頭舞蹈翻跳、獨立音樂表演與潮流咖啡館聚集地。',
+        },
+        history: 'Grew around Hongik University in the 1990s as an independent art and live music district.',
+        kContent: 'Daily K-POP dance cover busking & idol birthday cafe events along Eoulmadang-ro.',
+        experience: 'Four-cut photo booths (Life4Cuts), Hongdae Free Market, and Korean BBQ.',
+        arWaypoints: [
+          { dist: '140m', instruction: 'Walk straight out of Exit 9 past the convenience store (9번 출구 편의점을 지나 직진하세요)' },
+        ],
+        alleyGuide: [{ step: 1, title: 'Hongik Univ. Station Exit 9', desc: 'Walk 100m straight and turn left at the flagship sportswear corner.' }],
+      },
+    ];
+
+    const K_LANGUAGE_CATEGORIES = ['All', 'Greetings', 'Dining', 'Transit', 'Shopping', 'Emergency'];
+    const K_LANGUAGE_PHRASES = [
+      { id: 'l1', cat: 'Greetings', ko: '안녕하세요', roman: 'An-nyeong-ha-se-yo', en: 'Hello / Good day', ja: 'こんにちは', zh: '你好' },
+      { id: 'l2', cat: 'Greetings', ko: '감사합니다', roman: 'Gam-sa-ham-ni-da', en: 'Thank you very much', ja: 'ありがとうございます', zh: '非常感谢' },
+      { id: 'l3', cat: 'Greetings', ko: '죄송합니다 / 실례합니다', roman: 'Joe-song-ham-ni-da', en: 'I am sorry / Excuse me', ja: 'すみません', zh: '对不起 / 打扰一下' },
+      { id: 'l4', cat: 'Greetings', ko: '영어 할 수 있으세요?', roman: 'Yeong-eo hal su i-sseu-se-yo?', en: 'Do you speak English?', ja: '英語を話せますか？', zh: '您会说英语吗？' },
+      { id: 'l5', cat: 'Dining', ko: '여기 주문할게요', roman: 'Yeo-gi ju-mun-hal-ge-yo', en: 'I would like to order here', ja: 'すみません、注文します', zh: '这里点餐' },
+      { id: 'l6', cat: 'Dining', ko: '추천 메뉴가 뭐예요?', roman: 'Chu-cheon me-nyu-ga mwo-ye-yo?', en: 'What is your recommended dish?', ja: 'おすすめメニューは何ですか？', zh: '有什么推荐菜吗？' },
+      { id: 'l7', cat: 'Dining', ko: '안 맵게 해주세요', roman: 'An maep-ge hae-ju-se-yo', en: 'Please make it not spicy', ja: '辛くしないでください', zh: '请不要放辣' },
+      { id: 'l8', cat: 'Dining', ko: '물 좀 더 주세요', roman: 'Mul jom deo ju-se-yo', en: 'Please give me some more water', ja: 'お水をもっとください', zh: '请再给我一点水' },
+      { id: 'l9', cat: 'Dining', ko: '계산해 주세요', roman: 'Gye-san-hae ju-se-yo', en: 'Check / Bill please', ja: 'お会計お願いします', zh: '请结账' },
+      { id: 'l10', cat: 'Transit', ko: '이곳에 가려면 어떻게 가야 하나요?', roman: 'I-go-se ga-ryeo-myeon eo-tteo-ke ga-ya ha-na-yo?', en: 'How do I get to this place?', ja: 'ここへはどう行けばいいですか？', zh: '请问去这里怎么走？' },
+      { id: 'l11', cat: 'Transit', ko: '지하철역이 어디에 있어요?', roman: 'Ji-ha-cheol-yeo-gi eo-di-e i-sseo-yo?', en: 'Where is the subway station?', ja: '地下鉄の駅はどこですか？', zh: '地铁站在哪里？' },
+      { id: 'l12', cat: 'Transit', ko: '이 버스 명동 가나요?', roman: 'I beo-seu Myeong-dong ga-na-yo?', en: 'Does this bus go to Myeongdong?', ja: 'このバスは明洞に行きますか？', zh: '这趟公交车去明洞吗？' },
+      { id: 'l13', cat: 'Transit', ko: '교통카드 충전해 주세요', roman: 'Gyo-tong-ka-deu chung-jeon-hae ju-se-yo', en: 'Please top up my transit card', ja: '交通カードをチャージしてください', zh: '请帮我充值交通卡' },
+      { id: 'l14', cat: 'Shopping', ko: '이거 얼마예요?', roman: 'I-geo eol-ma-ye-yo?', en: 'How much is this?', ja: 'これはいくらですか？', zh: '这个多少钱？' },
+      { id: 'l15', cat: 'Shopping', ko: '카드로 결제할 수 있나요?', roman: 'Ka-deu-ro gyeol-je-hal su in-na-yo?', en: 'Can I pay by credit card?', ja: 'カードで支払えますか？', zh: '可以刷卡支付吗？' },
+      { id: 'l16', cat: 'Shopping', ko: '택스 리펀(면세) 되나요?', roman: 'Taek-seu ri-peon doe-na-yo?', en: 'Is tax refund available here?', ja: 'タックスリファンドはできますか？', zh: '可以办理退税吗？' },
+      { id: 'l17', cat: 'Shopping', ko: '새 상품으로 주세요', roman: 'Sae sang-pum-eu-ro ju-se-yo', en: 'Please give me a brand-new item', ja: '新しい商品をください', zh: '请给我一件全新的' },
+      { id: 'l18', cat: 'Emergency', ko: '화장실이 어디에 있어요?', roman: 'Hwa-jang-sil-i eo-di-e i-sseo-yo?', en: 'Where is the restroom?', ja: 'トイレはどこですか？', zh: '洗手间在哪里？' },
+      { id: 'l19', cat: 'Emergency', ko: '도와주세요! 길을 잃었어요', roman: 'Do-wa-ju-se-yo! Gi-reul i-reo-sseo-yo', en: 'Help me! I am lost', ja: '助けてください！道に迷いました', zh: '请帮帮我！我迷路了' },
+      { id: 'l20', cat: 'Emergency', ko: '가까운 약국이 어디예요?', roman: 'Ga-kka-un yak-gu-gi eo-di-ye-yo?', en: 'Where is the nearest pharmacy?', ja: '一番近い薬局はどこですか？', zh: '最近的药店在哪里？' },
+    ];
+
+    const K_ETIQUETTE_CATEGORIES = ['All', 'Dining & Drinks', 'Subway & Bus', 'Cafe & Daily', 'Palace & Temple'];
+    const K_ETIQUETTE_ITEMS = [
+      { id: 'e1', cat: 'Dining & Drinks', title: 'Use Two Hands When Pouring or Receiving Drinks', koTitle: '술·음료를 따르거나 받을 때는 두 손으로', rule: 'Hold the bottle or glass with both hands, especially with elders.', why: 'Rooted in Confucian respect, using two hands shows sincerity and humility.' },
+      { id: 'e2', cat: 'Dining & Drinks', title: 'Do Not Stick Chopsticks Vertically in Rice', koTitle: '밥그릇에 젓가락을 수직으로 꽂지 않기', rule: 'Rest chopsticks on the table or spoon rest instead.', why: 'Vertical chopsticks resemble incense sticks burned during ancestral rites.' },
+      { id: 'e3', cat: 'Dining & Drinks', title: 'Wait for the Eldest to Pick Up Their Spoon First', koTitle: '어르신이 먼저 수저를 드신 후 식사 시작', rule: 'Pause briefly until the senior person starts eating.', why: 'Korean dining values communal harmony and respect for elders.' },
+      { id: 'e4', cat: 'Dining & Drinks', title: 'Use Table Call Bells & Self-Service Water', koTitle: '테이블 호출 벨 및 셀프 물·반찬 문화', rule: 'Press the button on the table to call staff.', why: 'Designed for fast, non-intrusive service.' },
+      { id: 'e5', cat: 'Subway & Bus', title: 'Keep Priority Seats Vacant', koTitle: '노약자석 및 임산부 배려석 비워두기', rule: 'Leave the 3-seat end sections and pink seats open.', why: 'Reserved strictly for elderly, pregnant, and disabled passengers.' },
+      { id: 'e6', cat: 'Subway & Bus', title: 'Speak Quietly on Public Transit', koTitle: '지하철·버스 내 조용한 통화 및 대화', rule: 'Keep phone calls quiet and use earphones.', why: 'Commuters treat transit as a quiet rest space.' },
+      { id: 'e7', cat: 'Subway & Bus', title: 'Tap T-money Card When Boarding AND Exiting', koTitle: '하차 시에도 교통카드 반드시 태그하기', rule: 'Tap your card at the rear door reader when exiting.', why: 'Required for distance-based fare calculation and free transfers.' },
+      { id: 'e8', cat: 'Subway & Bus', title: 'No Open Takeout Drinks on City Buses', koTitle: '시내버스 내 테이크아웃 음료 반입 금지', rule: 'Unsealed disposable cups are not allowed on buses.', why: 'Prevents spills during sudden bus stops.' },
+      { id: 'e9', cat: 'Cafe & Daily', title: 'No Tipping Culture in Korea', koTitle: '한국은 팁(Tip) 문화가 없는 나라', rule: 'Do not leave cash tips; tax is already included.', why: 'Service wages are built into menu prices.' },
+      { id: 'e10', cat: 'Cafe & Daily', title: 'Return Cafe Trays to the Return Counter', koTitle: '카페 이용 후 트레이는 반납대에 정리하기', rule: 'Bring your tray and mugs to the return station.', why: 'Korean cafes operate on self-service turnover.' },
+      { id: 'e11', cat: 'Cafe & Daily', title: 'Remove Shoes Indoors & in Hanok', koTitle: '가정집·한옥·좌식 식당 입장 시 신발 벗기', rule: 'Take off your shoes when stepping onto raised wooden floors.', why: 'Korea uses Ondol underfloor heating.' },
+      { id: 'e12', cat: 'Cafe & Daily', title: 'Separate Recyclables & Food Waste', koTitle: '플라스틱·캔·일반쓰레기 분리배출', rule: 'Sort plastics, cans, and liquids into labeled bins.', why: 'Korea operates a strict volume-based recycling system.' },
+      { id: 'e13', cat: 'Palace & Temple', title: 'Do Not Step on Wooden Thresholds', koTitle: '궁궐·사찰 문지방(문턱) 밟지 않고 넘어가기', rule: 'Step cleanly over wooden door thresholds.', why: 'Thresholds symbolize sacred/royal boundaries.' },
+      { id: 'e14', cat: 'Palace & Temple', title: 'Use Side Gates at Buddhist Temples', koTitle: '사찰 대웅전 출입 시 양옆 측면 문 이용하기', rule: 'Enter through the left or right doors.', why: 'The center door is reserved for monks.' },
+      { id: 'e15', cat: 'Palace & Temple', title: 'Respect Quiet Hours in Hanok Villages', koTitle: '북촌·전주 한옥마을 주민 거주구역 정숙 유지', rule: 'Keep voices low and do not enter private homes.', why: 'Historic Hanok villages are active residential areas.' },
+      { id: 'e16', cat: 'Palace & Temple', title: 'Two-Handed Card & Cash Exchange', koTitle: '상점·택시에서 카드와 현금을 두 손으로 건네기', rule: 'Support your right wrist with your left hand.', why: 'A gesture of politeness across all generations.' },
+    ];
+
+    const SHOPPING_PLACES = [
+      {
+        id: 'shop-oliveyoung', brand: 'OLIVE YOUNG', store: 'Olive Young Myeongdong Town Flagship', coords: [37.5636, 126.9850], photo: REAL_PHOTOS.oliveYoung,
+        badge: 'K-Beauty #1 · Immediate Tax Refund', distance: '420m · 6 min walk', subway: 'Line 4 Myeongdong Station Exit 6', hours: '10:00 – 22:30',
+        highlights: 'Torriden Serum, Round Lab Birch Sunscreen, COSRX Snail Mucin, K-Beauty Global Tax-Free Desk on 2F.',
+        address: '53 Myeongdong-gil, Jung-gu, Seoul',
+        arWaypoints: [{ dist: '150m', instruction: 'Walk straight down Myeongdong-gil main street (명동길 메인 거리를 따라 직진하세요)' }],
+      },
+      {
+        id: 'shop-thehyundai', brand: 'THE HYUNDAI SEOUL', store: 'The Hyundai Seoul (Yeouido)', coords: [37.5259, 126.9284], photo: REAL_PHOTOS.theHyundai,
+        badge: 'K-Fashion & Pop-up Mecca', distance: '6.2km · 22 min (Line 5)', subway: 'Line 5/9 Yeouido Station Exit 3', hours: '10:30 – 20:00',
+        highlights: 'B2 Creative Ground (Matin Kim, Mardi Mercredi, Gentle Monster), 5F Sounds Forest indoor garden.',
+        address: '108 Yeoui-daero, Yeongdeungpo-gu, Seoul',
+        arWaypoints: [{ dist: '240m', instruction: 'Follow the underground moving walkway from Yeouido Station Exit 3 (여의도역 3번 출구 지하 무빙워크로 이동하세요)' }],
+      },
+      {
+        id: 'shop-lotte', brand: 'LOTTE DEPT. STORE', store: 'Lotte Department Store Main (Myeongdong)', coords: [37.5648, 126.9816], photo: REAL_PHOTOS.lotteDept,
+        badge: 'Luxury · Duty Free · K-Food Hall', distance: '550m · 8 min walk', subway: 'Line 2 Euljiro 1-ga Station Exit 7', hours: '10:30 – 20:00',
+        highlights: '9F–12F Lotte Duty Free, B1 Gourmet Food Hall, Tax Refund Kiosk on 1F & B1.',
+        address: '81 Namdaemun-ro, Jung-gu, Seoul',
+        arWaypoints: [{ dist: '180m', instruction: 'Walk toward Euljiro 1-ga intersection (을지로입구역 사거리 방향으로 이동하세요)' }],
+      },
+      {
+        id: 'shop-daiso', brand: 'DAISO KOREA', store: 'Daiso Myeongdong Station 12-Floor Flagship', coords: [37.5609, 126.9862], photo: REAL_PHOTOS.daiso,
+        badge: '1,000–5,000 KRW Value Shopping', distance: '380m · 5 min walk', subway: 'Line 4 Myeongdong Station Exit 1', hours: '10:00 – 22:00',
+        highlights: '12 floors of Korean stationery, VT Reedle Shot skincare, Hangeul souvenirs, and K-snacks.',
+        address: '134-1 Toegye-ro, Jung-gu, Seoul',
+        arWaypoints: [{ dist: '90m', instruction: 'Head toward Myeongdong Station Exit 1 (명동역 1번 출구 방향으로 이동하세요)' }],
+      },
+      {
+        id: 'shop-cvs', brand: 'CU / GS25 CONVENIENCE', store: 'CU Hongdae & Myeongdong Ramyeon Library', coords: [37.5572, 126.9245], photo: REAL_PHOTOS.convenience,
+        badge: '24/7 · T-money & K-Snacks', distance: '120m · 2 min walk', subway: 'Every subway exit & street corner', hours: 'Open 24 Hours',
+        highlights: 'Banana Milk, Triangle Kimbap, Buldak Ramyeon cooker station, T-money card top-up.',
+        address: 'Nearest Corner Store (Auto-detected)',
+        arWaypoints: [{ dist: '80m', instruction: 'Walk straight to the convenience store sign ahead (정면 편의점 간판 방향으로 80m 직진하세요)' }],
+      },
+    ];
+
+    const KIOSK_NEARBY_FACILITIES = [
+      { id: 'f1', type: 'Restroom', name: 'Gyeongbokgung Public Accessible Restroom', dist: '45m', floor: '1F West Gate' },
+      { id: 'f2', type: 'Pharmacy', name: 'Gwanghwamun English-Speaking Pharmacy', dist: '180m', floor: 'Exit 4 Street' },
+      { id: 'f3', type: 'Convenience', name: 'GS25 Palace Gate (T-money & SIM)', dist: '110m', floor: 'Exit 5 Plaza' },
+      { id: 'f4', type: 'Subway Elevator', name: 'Line 3 Gyeongbokgung Barrier-Free Lift', dist: '95m', floor: 'Gate B1 -> Street' },
+    ];
+
+    const SCENARIO_STEPS = [
+      { step: 1, short: '1. 앱 관광지 검색' },
+      { step: 2, short: '2. 키오스크 길찾기' },
+      { step: 3, short: '3. 키오스크 경로확인' },
+      { step: 4, short: '4. QR 스캔·앱 전송' },
+      { step: 5, short: '5. 앱 AR 목적지 이동' },
+      { step: 6, short: '6. 관광지 QR 정보확인' },
+    ];
+
+    const INITIAL_FEED_POSTS = [
+      {
+        id: 'post-1', user: 'sophia_paris', country: '🇫🇷 France', location: 'Gyeongbokgung Palace, Seoul', spotId: 'gyeongbokgung', photo: REAL_PHOTOS.gyeongbokgung,
+        caption: 'Wearing Hanbok at Gyeongbokgung! Used welKome AR navigation from Exit 5 elevator—zero stairs and super easy! ✨🏯',
+        timeAgo: '14 mins ago', likes: 128, liked: false, reactions: { '😍': 24, '🔥': 15, '👏': 19 },
+        comments: [{ user: 'kenji_tokyo', text: 'The Hanbok colors look amazing! Heading there next.' }],
+      },
+      {
+        id: 'post-2', user: 'liam_toronto', country: '🇨🇦 Canada', location: 'Bukchon Hanok Village', spotId: 'bukchon', photo: REAL_PHOTOS.bukchon,
+        caption: 'Found the exact rooftop photo spot in Bukchon using the alley photo guide!',
+        timeAgo: '1 hour ago', likes: 94, liked: true, reactions: { '😍': 31, '🔥': 9, '👏': 12 },
+        comments: [],
+      },
+    ];
+
+    const FAQ_ITEMS = [
+      { q: 'How does the Kiosk → QR Code → Mobile App sync work?', a: 'Search any destination on a welKome Street Kiosk, tap "Send Route via QR", and your exact walking, subway transfer, and elevator route opens automatically in the Map tab.' },
+      { q: 'How do I connect AI Smart Glasses to welKome?', a: 'Open the "AI Glasses" tab in the bottom navigation bar to pair via BLE/HUD sync. Turn-by-turn AR arrows and AI Chatbot translations appear directly on your glasses display.' },
+    ];
+
+    const InteractiveKoreaMap = ({ destination, stepFreeRoute, lang }) => {
+      const destCoords = destination?.coords || [37.5796, 126.9770];
+      const [lat, lng] = destCoords;
+      const bbox = `${(lng - 0.011).toFixed(5)},${(lat - 0.008).toFixed(5)},${(lng + 0.011).toFixed(5)},${(lat + 0.008).toFixed(5)}`;
+      const osmEmbedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat.toFixed(5)}%2C${lng.toFixed(5)}`;
+      const destLabel = destination?.name?.[lang] || destination?.name?.en || destination?.store || '경복궁';
+
+      return (
+        <div className="relative w-full h-full bg-[#DCE4F2] overflow-hidden">
+          <iframe key={`${lat}-${lng}`} title={`Korea Map - ${destLabel}`} src={osmEmbedUrl} className="w-full h-full border-0 scale-[1.03]" loading="lazy" />
+          <svg viewBox="0 0 360 440" className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none">
+            <path
+              d={stepFreeRoute ? 'M 110 315 L 110 245 L 180 245 L 180 198' : 'M 110 315 Q 135 265 180 198'}
+              fill="none" stroke="#4F46E5" strokeWidth="5" strokeLinecap="round" strokeDasharray={stepFreeRoute ? '8 6' : undefined}
+            />
+            <circle cx="110" cy="315" r="7" fill="#2563EB" stroke="#FFFFFF" strokeWidth="2.5" />
+          </svg>
+          <div className="absolute bottom-40 left-3 z-10 bg-white/95 backdrop-blur-md border border-indigo-100 rounded-xl px-2.5 py-1.5 shadow-md pointer-events-none">
+            <p className="text-[10px] font-black text-[#1E1B4B] flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              대한민국 서울 실시간 지도 · {destLabel}
+            </p>
+          </div>
+        </div>
+      );
+    };
+
+    function App() {
+      const [platformMode, setPlatformMode] = useState('mobile');
+      const [activeTab, setActiveTab] = useState('home');
+      const [lang, setLang] = useState('ko');
+      const [nickname, setNickname] = useState('Alex Traveler');
+      const [nationality, setNationality] = useState('United States');
+      const [selectedRegion, setSelectedRegion] = useState('Seoul');
+      const [favorites, setFavorites] = useState(['gyeongbokgung']);
+      const [stepFreeRoute, setStepFreeRoute] = useState(false);
+      const [scenarioStep, setScenarioStep] = useState(1);
+      const [qrSyncedToast, setQrSyncedToast] = useState(null);
+      const [homeSearch, setHomeSearch] = useState('');
+      const [selectedAttraction, setSelectedAttraction] = useState(null);
+      const [feedPosts, setFeedPosts] = useState(INITIAL_FEED_POSTS);
+      const [showPostModal, setShowPostModal] = useState(false);
+      const [newPostCaption, setNewPostCaption] = useState('');
+      const [newPostSpotId, setNewPostSpotId] = useState('gyeongbokgung');
+      const [commentInputs, setCommentInputs] = useState({});
+      const [mapDestination, setMapDestination] = useState(ATTRACTIONS[0]);
+      const [mapSearchQuery, setMapSearchQuery] = useState('');
+      const [showMapSearchDropdown, setShowMapSearchDropdown] = useState(false);
+      const [arMode, setArMode] = useState(false);
+      const [arStepIdx, setArStepIdx] = useState(0);
+      const [cultureSubTab, setCultureSubTab] = useState('language');
+      const [langCategory, setLangCategory] = useState('All');
+      const [etiquetteCategory, setEtiquetteCategory] = useState('All');
+      const [playingTrendId, setPlayingTrendId] = useState(null);
+      const [chatMessages, setChatMessages] = useState([
+        { sender: 'ai', text: 'Hello! I am welKome AI Concierge. Ask me about Hongdae spots, Daegu itineraries, Korean menu translation, or nearby restrooms!' },
+      ]);
+      const [chatInput, setChatInput] = useState('');
+      const [glassesConnected, setGlassesConnected] = useState(true);
+      const [glassesBrightness, setGlassesBrightness] = useState(85);
+      const [glassesHudPrompt, setGlassesHudPrompt] = useState('경복궁 광화문 방향 120m 직진 · 오른편 안내 표지판을 확인하세요.');
+      const [glassesQuickInput, setGlassesQuickInput] = useState('');
+      const [openFaqIdx, setOpenFaqIdx] = useState(0);
+      const [kioskSelectedSpot, setKioskSelectedSpot] = useState(ATTRACTIONS[0]);
+      const [qrLandmarkSpot, setQrLandmarkSpot] = useState(ATTRACTIONS[0]);
+
+      const t = UI_STRINGS[lang] || UI_STRINGS.en;
+
+      const speakPhrase = (text, speechLang = 'ko-KR') => {
+        try {
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = speechLang;
+            window.speechSynthesis.speak(utter);
+          }
+        } catch {}
+      };
+
+      const openInMap = (spot, startArImmediately = false, nextScenario = null) => {
+        const label = spot.name?.[lang] || spot.name?.en || spot.store || 'Destination';
+        setMapDestination(spot);
+        setArStepIdx(0);
+        setArMode(startArImmediately);
+        setSelectedAttraction(null);
+        setPlatformMode('mobile');
+        setActiveTab('map');
+        if (nextScenario) setScenarioStep(nextScenario);
+        if (glassesConnected) {
+          const firstInstruction = spot.arWaypoints?.[0]?.instruction || `${label} 방향으로 이동하세요.`;
+          setGlassesHudPrompt(`${label} 경로 동기화 · ${firstInstruction}`);
+        }
+      };
+
+      const buildAiReply = (query) => {
+        const q = query.toLowerCase();
+        if (q.includes('홍대') || q.includes('hongdae')) return '🎵 Hongdae Route: Hongik Univ. Exit 9 → Eoulmadang-ro K-POP Busking → Yeonnam-dong Forest Park Cafes.';
+        if (q.includes('대구') || q.includes('daegu')) return '🚄 Daegu Course: Dongdaegu Station → Seomun Market → Cheongna Hill → Suseong Lake.';
+        if (q.includes('화장실') || q.includes('restroom')) return '🚻 Nearest Restroom: Gyeongbokgung Station B1 Concourse (95m) & Gwanghwamun West Restroom (45m).';
+        return `✨ welKome AI Guide: In ${selectedRegion}, I recommend Gyeongbokgung Palace or Olive Young Myeongdong Flagship!`;
+      };
+
+      const handleSendChat = (customPrompt = null) => {
+        const prompt = (customPrompt || chatInput).trim();
+        if (!prompt) return;
+        const reply = buildAiReply(prompt);
+        setChatMessages((prev) => [...prev, { sender: 'user', text: prompt }, { sender: 'ai', text: reply }]);
+        if (!customPrompt) setChatInput('');
+        if (glassesConnected) setGlassesHudPrompt(reply);
+      };
+
+      const handleScenarioJump = (stepNum) => {
+        setScenarioStep(stepNum);
+        if (stepNum === 1) { setPlatformMode('mobile'); setActiveTab('home'); }
+        else if (stepNum === 2) { setPlatformMode('mobile'); setActiveTab('map'); setArMode(false); }
+        else if (stepNum === 3) { setPlatformMode('kiosk'); }
+        else if (stepNum === 4 || stepNum === 5) { setPlatformMode('mobile'); setActiveTab('map'); setArMode(true); }
+        else if (stepNum === 6) { setPlatformMode('qr'); }
+      };
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-[#EDE9FE] via-[#E0E7FF] to-[#DDD6FE] flex flex-col items-center py-3 px-2 font-sans">
+          {/* Top Ecosystem Switcher */}
+          <div className="w-full max-w-4xl mb-3 flex flex-col gap-2">
+            <div className="bg-white/90 backdrop-blur-md rounded-2xl p-2 shadow-sm border border-indigo-100 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2 pl-1">
+                <WelKomeAppIcon size={28} />
+                <WelKomeWordmark dark size="text-base" />
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { id: 'mobile', label: '1. Mobile App' },
+                  { id: 'kiosk', label: '2. Tourism Kiosk' },
+                  { id: 'qr', label: '3. QR Landmark' },
+                ].map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => setPlatformMode(m.id)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${
+                      platformMode === m.id ? 'bg-[#4F46E5] text-white shadow' : 'bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white/85 rounded-2xl px-3 py-2 border border-indigo-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              <span className="text-[10px] font-black text-indigo-700 whitespace-nowrap mr-1">서비스 연동 시나리오:</span>
+              {SCENARIO_STEPS.map((s) => (
+                <button
+                  key={s.step}
+                  onClick={() => handleScenarioJump(s.step)}
+                  className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold whitespace-nowrap ${
+                    scenarioStep === s.step ? 'bg-[#1E1B4B] text-white' : 'bg-indigo-50 text-indigo-700'
+                  }`}
+                >
+                  {s.short}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {qrSyncedToast && (
+            <div className="mb-2 bg-emerald-600 text-white text-xs font-extrabold px-4 py-2 rounded-full shadow-lg">
+              ✓ {qrSyncedToast}
+            </div>
+          )}
+
+          {/* MOBILE APP FRAME */}
+          {platformMode === 'mobile' && (
+            <div className="relative w-full max-w-[395px] h-[750px] bg-white rounded-[42px] shadow-2xl border-[7px] border-[#1E1B4B] overflow-hidden flex flex-col">
+              <div className="flex-1 overflow-y-auto relative welkome-scroll-hide">
+                {/* HOME TAB */}
+                {activeTab === 'home' && (
+                  <div className="pb-24 bg-[#F5F6FC] min-h-full">
+                    <div className="bg-gradient-to-br from-[#2E1A78] via-[#4338CA] to-[#6366F1] text-white px-4 pt-4 pb-6 rounded-b-3xl shadow-lg space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <WelKomeAppIcon size={36} />
+                          <div>
+                            <WelKomeWordmark size="text-lg" />
+                            <p className="text-[10px] text-indigo-200 font-semibold">{t.slogan}</p>
+                          </div>
+                        </div>
+                        <select
+                          value={lang}
+                          onChange={(e) => setLang(e.target.value)}
+                          className="bg-white/15 text-white text-[10px] font-extrabold rounded-full px-2.5 py-1 border border-white/20"
+                        >
+                          {LANGUAGES.map((l) => (
+                            <option key={l.code} value={l.code} className="text-slate-900">{l.flag} {l.code.toUpperCase()}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="bg-white/15 border border-white/20 rounded-2xl p-3 flex items-center justify-between">
+                        <div>
+                          <p className="text-[10px] text-indigo-200 font-bold">Welcome back, {nickname} 👋</p>
+                          <h1 className="text-sm font-black mt-0.5">{t.heroBanner}</h1>
+                        </div>
+                        <button onClick={() => openInMap(ATTRACTIONS[0], true, 5)} className="w-9 h-9 rounded-full bg-white text-[#4F46E5] flex items-center justify-center shadow">
+                          <LucideIcon name="ArrowRight" className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={homeSearch}
+                          onChange={(e) => setHomeSearch(e.target.value)}
+                          placeholder={t.searchPlaceholder}
+                          className="w-full bg-white text-slate-900 placeholder-slate-400 text-xs font-bold px-4 py-3 rounded-2xl shadow-md focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { label: t.quickNav, icon: 'Navigation', action: () => setActiveTab('map') },
+                          { label: t.quickSpots, icon: 'Landmark', action: () => setSelectedAttraction(ATTRACTIONS[0]) },
+                          { label: t.quickTrans, icon: 'MessageCircle', action: () => setActiveTab('chat') },
+                          { label: t.quickFood, icon: 'Utensils', action: () => { setCultureSubTab('language'); setLangCategory('Dining'); setActiveTab('culture'); } },
+                          { label: t.quickTransit, icon: 'Train', action: () => setActiveTab('map') },
+                          { label: t.quickCourses, icon: 'Star', action: () => setActiveTab('chat') },
+                        ].map((tile, idx) => (
+                          <button
+                            key={idx}
+                            onClick={tile.action}
+                            className="bg-white/15 hover:bg-white/25 border border-white/20 rounded-2xl py-2.5 px-2 flex flex-col items-center gap-1"
+                          >
+                            <LucideIcon name={tile.icon} className="w-4 h-4 text-amber-300" />
+                            <span className="text-[11px] font-extrabold text-white">{tile.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="p-4 space-y-4">
+                      {/* Hotspot Banner */}
+                      <div onClick={() => setSelectedAttraction(ATTRACTIONS[0])} className="relative h-28 rounded-3xl overflow-hidden shadow-md cursor-pointer">
+                        <SafePhoto src={REAL_PHOTOS.gyeongbokgung} alt="Gyeongbokgung" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#1E1B4B]/90 via-[#1E1B4B]/55 to-transparent p-3.5 flex items-center justify-between text-white">
+                          <div>
+                            <span className="bg-rose-500 text-[9px] font-black px-2 py-0.5 rounded-full">HOTSPOT</span>
+                            <h3 className="text-sm font-black mt-1">{t.hotSpotTitle}</h3>
+                            <p className="text-[10px] text-indigo-200">경복궁 AR 길찾기 바로가기</p>
+                          </div>
+                          <LucideIcon name="ChevronRight" className="w-5 h-5" />
+                        </div>
+                      </div>
+
+                      {/* Traveler Moments Feed */}
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h2 className="text-xs font-black text-[#1E1B4B]">{t.feedTitle}</h2>
+                            <p className="text-[10px] text-slate-500">{t.feedSubtitle}</p>
+                          </div>
+                          <button onClick={() => setShowPostModal(true)} className="bg-[#4F46E5] text-white text-[10px] font-extrabold px-3 py-1.5 rounded-full">
+                            {t.postMomentBtn}
+                          </button>
+                        </div>
+
+                        {feedPosts.map((post) => (
+                          <div key={post.id} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100">
+                            <div className="px-3.5 py-2.5 flex items-center justify-between">
+                              <div>
+                                <p className="text-[11px] font-black text-slate-900">@{post.user} <span className="text-slate-400 font-normal">{post.country}</span></p>
+                                <p className="text-[9px] font-bold text-indigo-600">📍 {post.location}</p>
+                              </div>
+                              <span className="text-[9px] text-slate-400">{post.timeAgo}</span>
+                            </div>
+                            <SafePhoto src={post.photo} alt={post.location} className="w-full h-44 object-cover" />
+                            <div className="p-3 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => setFeedPosts((prev) => prev.map((p) => p.id === post.id ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 } : p))}
+                                    className="text-xs font-extrabold text-rose-600"
+                                  >
+                                    {post.liked ? '❤️' : '🤍'} {post.likes}
+                                  </button>
+                                  {Object.entries(post.reactions).map(([em, cnt]) => (
+                                    <button
+                                      key={em}
+                                      onClick={() => setFeedPosts((prev) => prev.map((p) => p.id === post.id ? { ...p, reactions: { ...p.reactions, [em]: cnt + 1 } } : p))}
+                                      className="bg-slate-100 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                                    >
+                                      {em} {cnt}
+                                    </button>
+                                  ))}
+                                </div>
+                                <button
+                                  onClick={() => openInMap(ATTRACTIONS.find((a) => a.id === post.spotId) || ATTRACTIONS[0], false, 1)}
+                                  className="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full"
+                                >
+                                  이 장소 길찾기 →
+                                </button>
+                              </div>
+                              <p className="text-[11px] text-slate-700">{post.caption}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {showPostModal && (
+                      <div className="absolute inset-0 z-40 bg-black/60 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-3xl p-4 w-full space-y-3">
+                          <div className="flex justify-between items-center">
+                            <h3 className="text-sm font-black">Share Korea Check-in</h3>
+                            <button onClick={() => setShowPostModal(false)}><LucideIcon name="X" /></button>
+                          </div>
+                          <select value={newPostSpotId} onChange={(e) => setNewPostSpotId(e.target.value)} className="w-full bg-slate-100 rounded-xl px-3 py-2 text-xs font-bold">
+                            {ATTRACTIONS.map((a) => <option key={a.id} value={a.id}>📍 {a.name.ko} ({a.name.en})</option>)}
+                          </select>
+                          <textarea rows={3} value={newPostCaption} onChange={(e) => setNewPostCaption(e.target.value)} placeholder="여행 인증 소감을 남겨보세요..." className="w-full bg-slate-100 rounded-xl p-3 text-xs" />
+                          <button
+                            onClick={() => {
+                              if (!newPostCaption.trim()) return;
+                              const sp = ATTRACTIONS.find((a) => a.id === newPostSpotId) || ATTRACTIONS[0];
+                              setFeedPosts((prev) => [{ id: `p-${Date.now()}`, user: nickname.toLowerCase().replace(/\s+/g, '_'), country: `🌍 ${nationality}`, location: sp.name.en, spotId: sp.id, photo: sp.photo, caption: newPostCaption, timeAgo: 'Just now', likes: 1, liked: true, reactions: { '😍': 1, '🔥': 0 }, comments: [] }, ...prev]);
+                              setNewPostCaption('');
+                              setShowPostModal(false);
+                            }}
+                            className="w-full py-2.5 rounded-2xl bg-[#4F46E5] text-white text-xs font-extrabold"
+                          >
+                            인증 올리기
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* MAP TAB */}
+                {activeTab === 'map' && (() => {
+                  const destName = mapDestination.name?.[lang] || mapDestination.name?.en || mapDestination.store;
+                  const waypoints = mapDestination.arWaypoints || ATTRACTIONS[0].arWaypoints;
+                  const currentStep = waypoints[arStepIdx] || waypoints[0];
+                  const allDestinations = [
+                    ...ATTRACTIONS.map((a) => ({ ...a, searchLabel: `${a.name.ko} (${a.name.en})` })),
+                    ...SHOPPING_PLACES.map((s) => ({ ...s, name: { en: s.store, ko: s.store }, searchLabel: `${s.brand} - ${s.store}`, walkTime: s.distance, transitTime: s.subway })),
+                  ];
+                  const filteredMap = allDestinations.filter((it) => it.searchLabel.toLowerCase().includes(mapSearchQuery.toLowerCase()));
+
+                  return (
+                    <div className="relative h-full flex flex-col bg-slate-100">
+                      <div className="absolute top-3 left-3 right-3 z-20 bg-white/95 backdrop-blur-md rounded-2xl p-2.5 shadow-lg border border-indigo-100 space-y-2">
+                        <input
+                          type="text"
+                          value={mapSearchQuery}
+                          onFocus={() => setShowMapSearchDropdown(true)}
+                          onChange={(e) => { setMapSearchQuery(e.target.value); setShowMapSearchDropdown(true); }}
+                          placeholder="목적지 검색 (경복궁, 올리브영, 다이소, 더현대...)"
+                          className="w-full bg-slate-100 text-[11px] font-bold px-3 py-2 rounded-xl focus:outline-none"
+                        />
+                        {showMapSearchDropdown && (
+                          <div className="max-h-36 overflow-y-auto bg-white rounded-xl border border-indigo-100 divide-y divide-slate-100">
+                            {filteredMap.map((it) => (
+                              <button
+                                key={it.id}
+                                onClick={() => { setMapDestination(it); setMapSearchQuery(it.name?.ko || it.store); setShowMapSearchDropdown(false); setArStepIdx(0); }}
+                                className="w-full px-3 py-2 text-left hover:bg-indigo-50 flex justify-between text-[11px]"
+                              >
+                                <span className="font-black text-[#1E1B4B] truncate">{it.searchLabel}</span>
+                                <span className="font-bold text-indigo-600 shrink-0 ml-2">{it.distance}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+                          {allDestinations.slice(0, 6).map((sp) => (
+                            <button
+                              key={sp.id}
+                              onClick={() => { setMapDestination(sp); setShowMapSearchDropdown(false); setArStepIdx(0); }}
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold whitespace-nowrap ${
+                                mapDestination.id === sp.id ? 'bg-[#4F46E5] text-white' : 'bg-slate-100 text-slate-700'
+                              }`}
+                            >
+                              {sp.name?.[lang] || sp.name?.en || sp.brand}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {arMode ? (
+                        <div className="relative flex-1 bg-slate-950">
+                          <SafePhoto src={mapDestination.photo || REAL_PHOTOS.gyeongbokgung} alt={destName} className="w-full h-full object-cover brightness-90" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/60" />
+                          <div className="absolute top-28 left-4 right-4 bg-indigo-950/85 border border-cyan-300/50 rounded-2xl p-3 text-white">
+                            <p className="text-[10px] font-extrabold text-cyan-300">{destName}까지 약 {currentStep.dist}</p>
+                            <p className="text-xs font-black mt-0.5">{currentStep.instruction}</p>
+                          </div>
+                          <div className="absolute bottom-3 left-3 right-3 bg-white/95 rounded-2xl p-3 shadow-xl space-y-2">
+                            <div className="flex items-center gap-2.5">
+                              <SafePhoto src={mapDestination.photo || REAL_PHOTOS.gyeongbokgung} alt={destName} className="w-12 h-12 rounded-xl object-cover" />
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs font-black text-[#1E1B4B] truncate">{destName}</p>
+                                <p className="text-[10px] text-slate-500 truncate">{mapDestination.address}</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <button onClick={() => setArStepIdx((p) => (p + 1) % waypoints.length)} className="py-2 rounded-xl bg-[#4F46E5] text-white text-xs font-extrabold">다음 지점 안내 →</button>
+                              <button onClick={() => setArMode(false)} className="py-2 rounded-xl bg-slate-100 text-slate-800 text-xs font-extrabold">한국 지도로 복귀</button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="relative flex-1">
+                          <InteractiveKoreaMap destination={mapDestination} stepFreeRoute={stepFreeRoute} lang={lang} />
+                          <div className="absolute bottom-3 left-3 right-3 z-20 bg-white/95 rounded-3xl p-3.5 shadow-xl border border-indigo-100 space-y-2">
+                            <div className="flex items-center gap-3">
+                              <SafePhoto src={mapDestination.photo || REAL_PHOTOS.gyeongbokgung} alt={destName} className="w-14 h-14 rounded-2xl object-cover" />
+                              <div className="min-w-0 flex-1">
+                                <h3 className="text-sm font-black text-[#1E1B4B] truncate">{destName}</h3>
+                                <p className="text-[10px] text-slate-500 truncate">{mapDestination.address}</p>
+                                <p className="text-[10px] font-bold text-indigo-600 mt-0.5">🚇 {mapDestination.subwayInfo || mapDestination.subway}</p>
+                              </div>
+                            </div>
+                            <button onClick={() => { setArMode(true); setScenarioStep(5); }} className="w-full py-2.5 rounded-2xl bg-[#4F46E5] text-white text-xs font-extrabold">
+                              {t.startNav} ▶
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* K-CULTURE TAB */}
+                {activeTab === 'culture' && (
+                  <div className="pb-24 bg-[#F5F6FC] min-h-full">
+                    <div className="bg-gradient-to-r from-[#2E1A78] to-[#4F46E5] text-white px-4 pt-4 pb-5 rounded-b-3xl shadow-md">
+                      <h2 className="text-base font-black">K-Culture & Travel Guide</h2>
+                      <div className="grid grid-cols-3 gap-1.5 mt-3 bg-white/15 p-1 rounded-2xl">
+                        {[
+                          { id: 'language', label: t.cultureLang },
+                          { id: 'etiquette', label: t.cultureEtiquette },
+                          { id: 'shopping', label: t.cultureShopping },
+                        ].map((tab) => (
+                          <button
+                            key={tab.id}
+                            onClick={() => setCultureSubTab(tab.id)}
+                            className={`py-2 px-1 rounded-xl text-[10px] font-extrabold ${
+                              cultureSubTab === tab.id ? 'bg-white text-[#1E1B4B]' : 'text-white/90'
+                            }`}
+                          >
+                            {tab.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="p-4 space-y-3">
+                      {cultureSubTab === 'language' && (
+                        <>
+                          <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+                            {K_LANGUAGE_CATEGORIES.map((c) => (
+                              <button key={c} onClick={() => setLangCategory(c)} className={`px-3 py-1 rounded-full text-[11px] font-extrabold ${langCategory === c ? 'bg-[#4F46E5] text-white' : 'bg-white text-slate-700'}`}>{c}</button>
+                            ))}
+                          </div>
+                          {(langCategory === 'All' ? K_LANGUAGE_PHRASES : K_LANGUAGE_PHRASES.filter((p) => p.cat === langCategory)).map((p) => (
+                            <div key={p.id} className="bg-white rounded-2xl p-3 flex items-center justify-between gap-2 shadow-xs">
+                              <div>
+                                <span className="text-[9px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{p.cat}</span>
+                                <p className="text-sm font-black text-[#1E1B4B] mt-1">{p.ko}</p>
+                                <p className="text-[11px] text-indigo-600">{p.roman}</p>
+                                <p className="text-xs text-slate-600">{p.en}</p>
+                              </div>
+                              <button onClick={() => speakPhrase(p.ko)} className="w-9 h-9 rounded-xl bg-indigo-50 text-[#4F46E5] flex items-center justify-center">
+                                <LucideIcon name="Volume2" />
+                              </button>
+                            </div>
+                          ))}
+                        </>
+                      )}
+
+                      {cultureSubTab === 'etiquette' && (
+                        <>
+                          <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+                            {K_ETIQUETTE_CATEGORIES.map((c) => (
+                              <button key={c} onClick={() => setEtiquetteCategory(c)} className={`px-3 py-1 rounded-full text-[11px] font-extrabold ${etiquetteCategory === c ? 'bg-[#4F46E5] text-white' : 'bg-white text-slate-700'}`}>{c}</button>
+                            ))}
+                          </div>
+                          {(etiquetteCategory === 'All' ? K_ETIQUETTE_ITEMS : K_ETIQUETTE_ITEMS.filter((e) => e.cat === etiquetteCategory)).map((item) => (
+                            <div key={item.id} className="bg-white rounded-2xl p-3.5 shadow-xs space-y-1">
+                              <span className="text-[9px] font-extrabold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">{item.cat}</span>
+                              <h4 className="text-xs font-black text-[#1E1B4B]">{item.title}</h4>
+                              <p className="text-[11px] font-bold text-indigo-600">{item.koTitle}</p>
+                              <p className="text-xs text-slate-700">{item.rule}</p>
+                              <p className="text-[11px] text-slate-500 bg-slate-50 p-2 rounded-xl">Why? {item.why}</p>
+                            </div>
+                          ))}
+                        </>
+                      )}
+
+                      {cultureSubTab === 'shopping' && (
+                        <div className="space-y-3">
+                          <div className="bg-gradient-to-br from-[#1E1B4B] to-[#3730A3] text-white rounded-3xl p-4 space-y-1.5">
+                            <span className="text-[10px] font-extrabold bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full">2026 K-SHOPPING TREND</span>
+                            <h3 className="text-sm font-black">요즘 한국에서 가장 핫한 쇼핑 & 라이프스타일 트렌드</h3>
+                            <p className="text-[11px] text-indigo-100">① 올리브영 슬로우에이징·리들샷 ② 다이소 3,000원 가성비 뷰티 & 한글 굿즈 ③ 편의점 한강라면 즉시 조리기</p>
+                          </div>
+
+                          {SHOPPING_PLACES.map((shop) => {
+                            const isPlaying = playingTrendId === shop.id;
+                            const intro = shop.id === 'shop-oliveyoung'
+                              ? '올리브영은 한국의 대표 헬스 & 뷰티 스토어로, 인기 스킨케어·마스크팩·메이크업 제품을 테스트하고 즉시 면세로 구매할 수 있습니다.'
+                              : shop.id === 'shop-daiso'
+                              ? '다이소는 1,000원~5,000원 균일가로 생활용품, 문구, 한글 기념품, 가성비 화장품을 판매하는 한국 최대 생활용품점입니다.'
+                              : shop.id === 'shop-cvs'
+                              ? '한국 편의점(CU, GS25)은 24시간 운영되며 K-라면 즉석 조리, 교통카드 충전, 해외카드 ATM까지 이용할 수 있는 생활 허브입니다.'
+                              : `${shop.store}는 최신 K-패션 플래그십과 팝업스토어를 한 번에 즐길 수 있는 대표 쇼핑 랜드마크입니다.`;
+
+                            return (
+                              <div key={shop.id} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100">
+                                <div className="relative h-44 bg-slate-950">
+                                  <SafePhoto src={shop.photo} alt={shop.store} className="w-full h-full object-cover" />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                                  <span className="absolute top-2.5 left-2.5 bg-[#1E1B4B]/85 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full">{shop.brand}</span>
+                                  <button
+                                    onClick={() => {
+                                      setPlayingTrendId(isPlaying ? null : shop.id);
+                                      if (!isPlaying) speakPhrase(`${shop.store} 최신 쇼핑 트렌드를 안내해 드릴게요!`);
+                                    }}
+                                    className="absolute bottom-2.5 left-2.5 bg-rose-600 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-full"
+                                  >
+                                    {isPlaying ? '⏹ 트렌드 영상 닫기' : '▶ 요즘 트렌드 영상 보기'}
+                                  </button>
+                                  {isPlaying && (
+                                    <div className="absolute inset-x-3 top-11 bg-black/85 border border-rose-400/50 rounded-2xl p-2.5 text-white">
+                                      <p className="text-[9px] font-black text-rose-300">● IN-APP K-TREND PREVIEW</p>
+                                      <p className="text-[11px] font-bold mt-0.5">{shop.highlights}</p>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="p-3.5 space-y-2">
+                                  <h3 className="text-sm font-black text-[#1E1B4B]">{shop.store}</h3>
+                                  <p className="text-[11px] text-slate-700 bg-slate-50 p-2.5 rounded-2xl">💡 <b>이곳은 어떤 곳인가요?</b> {intro}</p>
+                                  <button onClick={() => openInMap(shop, false, 1)} className="w-full py-2.5 rounded-2xl bg-[#4F46E5] text-white text-xs font-extrabold">
+                                    📍 {t.findNearMeBtn}
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* AI CHAT TAB */}
+                {activeTab === 'chat' && (
+                  <div className="pb-24 bg-[#F5F6FC] min-h-full flex flex-col">
+                    <div className="bg-gradient-to-r from-[#2E1A78] to-[#4F46E5] text-white px-4 pt-4 pb-4 rounded-b-3xl shadow-md">
+                      <h2 className="text-base font-black">welKome AI Travel Concierge</h2>
+                      <p className="text-[10px] text-indigo-200">Synced with Map & AI Smart Glasses</p>
+                    </div>
+                    <div className="p-4 space-y-3 flex-1">
+                      <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+                        {['홍대에서 가볼 만한 곳 추천해 줘', '나는 지금 대구에 있어. 여행 코스를 짜줘', '근처에 화장실이 어디 있어?'].map((q) => (
+                          <button key={q} onClick={() => handleSendChat(q)} className="px-3 py-1.5 rounded-full bg-white border border-indigo-100 text-[10px] font-extrabold text-indigo-700 whitespace-nowrap">
+                            {q}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="space-y-3 max-h-80 overflow-y-auto">
+                        {chatMessages.map((msg, i) => (
+                          <div key={i} className={`flex items-start gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                            {msg.sender === 'ai' && (
+                              <div className="w-8 h-8 rounded-full overflow-hidden shadow-md border-2 border-indigo-200 bg-[#5B21B6] flex items-center justify-center shrink-0">
+                                <WelKomeAppIcon size={32} />
+                              </div>
+                            )}
+                            <div className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-xs ${msg.sender === 'user' ? 'bg-[#4F46E5] text-white font-semibold' : 'bg-white text-slate-800 border border-slate-100'}`}>
+                              {msg.sender === 'ai' && <p className="text-[10px] font-black text-indigo-600 mb-0.5">welKome AI 챗봇</p>}
+                              {msg.text}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-2">
+                        <input
+                          type="text"
+                          value={chatInput}
+                          onChange={(e) => setChatInput(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleSendChat()}
+                          placeholder={t.aiPlaceholder}
+                          className="flex-1 bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs"
+                        />
+                        <button onClick={() => handleSendChat()} className="p-2.5 rounded-2xl bg-[#4F46E5] text-white">
+                          <LucideIcon name="Send" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* AI GLASSES TAB */}
+                {activeTab === 'glasses' && (
+                  <div className="pb-24 bg-[#F5F6FC] min-h-full">
+                    <div className="bg-gradient-to-br from-[#191347] via-[#2A1F73] to-[#4F46E5] text-white px-4 pt-4 pb-5 rounded-b-3xl shadow-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h2 className="text-base font-black">AI 스마트 안경</h2>
+                          <span className="text-[10px] font-extrabold text-emerald-300">{glassesConnected ? '● BLE + HUD 실시간 연결됨' : '○ 연결 대기 중'}</span>
+                        </div>
+                        <button onClick={() => setGlassesConnected(!glassesConnected)} className="px-3 py-1.5 rounded-full bg-white text-[#1E1B4B] text-[11px] font-extrabold">
+                          {glassesConnected ? '연결 해제' : '안경 연결'}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      <div className="relative h-48 rounded-3xl overflow-hidden border-2 border-indigo-400/40 bg-slate-950">
+                        <SafePhoto src={mapDestination.photo || REAL_PHOTOS.gyeongbokgung} alt="HUD" className="w-full h-full object-cover brightness-90" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/60" />
+                        <div className="absolute top-3 left-3 right-3 bg-indigo-950/85 border border-cyan-300/50 rounded-2xl p-2.5 text-white">
+                          <p className="text-[9px] font-extrabold text-cyan-300">AR 길찾기 동기화 · HUD {glassesBrightness}%</p>
+                          <p className="text-xs font-black mt-0.5">{(mapDestination.arWaypoints || ATTRACTIONS[0].arWaypoints)[0].instruction}</p>
+                        </div>
+                        <div className="absolute bottom-3 left-3 right-3 bg-black/80 border border-cyan-300/40 rounded-xl px-3 py-2 text-white">
+                          <p className="text-[9px] font-extrabold text-cyan-300">AI 챗봇 실시간 안경 자막</p>
+                          <p className="text-[11px] truncate">{glassesHudPrompt}</p>
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-2xl p-3.5 space-y-2">
+                        <p className="text-xs font-black text-[#1E1B4B]">AI 챗봇 질문 → 안경 자막/음성 전송</p>
+                        <div className="flex gap-1.5">
+                          <input
+                            type="text"
+                            value={glassesQuickInput}
+                            onChange={(e) => setGlassesQuickInput(e.target.value)}
+                            placeholder="홍대 추천, 메뉴 번역..."
+                            className="flex-1 px-3 py-2 rounded-xl bg-slate-100 text-xs"
+                          />
+                          <button
+                            onClick={() => {
+                              if (!glassesQuickInput.trim()) return;
+                              const rep = buildAiReply(glassesQuickInput);
+                              setGlassesHudPrompt(rep);
+                              speakPhrase(rep);
+                              setGlassesQuickInput('');
+                            }}
+                            className="px-3.5 py-2 rounded-xl bg-[#4F46E5] text-white text-xs font-extrabold"
+                          >
+                            전송
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* MY PAGE TAB */}
+                {activeTab === 'mypage' && (
+                  <div className="pb-24 bg-[#F5F6FC] min-h-full">
+                    <div className="bg-gradient-to-br from-[#2E1A78] to-[#4F46E5] text-white px-4 pt-5 pb-6 rounded-b-3xl">
+                      <div className="flex items-center gap-3">
+                        <WelKomeAppIcon size={44} />
+                        <div>
+                          <input value={nickname} onChange={(e) => setNickname(e.target.value)} className="bg-transparent border-b border-white/30 text-base font-black text-white focus:outline-none" />
+                          <p className="text-[11px] text-indigo-200 mt-1">{nationality} · {selectedRegion} Explorer</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      <div className="bg-white rounded-2xl p-3.5 space-y-2">
+                        <h3 className="text-xs font-black text-[#1E1B4B]">Q&A · Smart Tourism Help Center</h3>
+                        {FAQ_ITEMS.map((item, idx) => (
+                          <div key={idx} className="border border-slate-100 rounded-xl overflow-hidden">
+                            <button onClick={() => setOpenFaqIdx(openFaqIdx === idx ? -1 : idx)} className="w-full p-2.5 bg-slate-50 text-left text-[11px] font-extrabold text-slate-800">
+                              {item.q}
+                            </button>
+                            {openFaqIdx === idx && <p className="p-2.5 text-[11px] text-slate-600 bg-white">{item.a}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* BOTTOM 6-TAB NAVIGATION BAR */}
+              <nav className="bg-white/95 border-t border-slate-100 px-1 py-2 grid grid-cols-6 items-center shrink-0 z-30">
+                {[
+                  { id: 'home', label: t.navHome, icon: 'Landmark' },
+                  { id: 'map', label: t.navMap, icon: 'MapPin' },
+                  { id: 'culture', label: t.navCulture, icon: 'Sparkles' },
+                  { id: 'chat', label: t.navChat, icon: 'MessageCircle' },
+                  { id: 'glasses', label: t.navGlasses, icon: 'Glasses' },
+                  { id: 'mypage', label: t.navMyPage, icon: 'User' },
+                ].map((nav) => {
+                  const isActive = activeTab === nav.id;
+                  return (
+                    <button
+                      key={nav.id}
+                      onClick={() => { setSelectedAttraction(null); setActiveTab(nav.id); }}
+                      className={`flex flex-col items-center justify-center py-1 rounded-xl ${isActive ? 'text-[#4F46E5]' : 'text-slate-400'}`}
+                    >
+                      <div className={`p-1.5 rounded-xl ${isActive ? 'bg-indigo-50' : ''}`}>
+                        <LucideIcon name={nav.icon} className="w-4 h-4" />
+                      </div>
+                      <span className="text-[9px] font-extrabold mt-0.5 truncate max-w-full px-0.5">{nav.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+          )}
+
+          {/* KIOSK MODE */}
+          {platformMode === 'kiosk' && (
+            <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border-4 border-indigo-900/15 overflow-hidden">
+              <div className="bg-gradient-to-r from-[#1E1B4B] to-[#4F46E5] text-white p-5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <WelKomeAppIcon size={44} />
+                  <div>
+                    <WelKomeWordmark size="text-2xl" />
+                    <p className="text-xs text-indigo-200">TOURISM KIOSK #04 · GWANGHWAMUN</p>
+                  </div>
+                </div>
+              </div>
+              <div className="grid md:grid-cols-3 gap-5 p-6 bg-slate-50">
+                <div className="md:col-span-2 space-y-3">
+                  <h3 className="text-sm font-black text-[#1E1B4B]">1. Select Destination</h3>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {ATTRACTIONS.map((spot) => (
+                      <button
+                        key={spot.id}
+                        onClick={() => { setKioskSelectedSpot(spot); setScenarioStep(3); }}
+                        className={`p-3 rounded-2xl border-2 text-left flex items-center gap-3 ${kioskSelectedSpot.id === spot.id ? 'border-[#4F46E5] bg-indigo-50' : 'border-slate-200 bg-white'}`}
+                      >
+                        <SafePhoto src={spot.photo} alt={spot.name.en} className="w-14 h-14 rounded-xl object-cover" />
+                        <div>
+                          <p className="text-sm font-black text-[#1E1B4B]">{spot.name[lang] || spot.name.en}</p>
+                          <p className="text-xs text-slate-500">{spot.distance} · {spot.walkTime}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-white rounded-3xl p-5 border border-indigo-100 text-center space-y-4">
+                  <h4 className="text-base font-black text-[#1E1B4B]">{kioskSelectedSpot.name[lang] || kioskSelectedSpot.name.en}</h4>
+                  <div className="p-4 rounded-3xl bg-indigo-50 inline-block">
+                    <LucideIcon name="QrCode" className="w-24 h-24 text-[#1E1B4B]" />
+                  </div>
+                  <button
+                    onClick={() => { setQrSyncedToast(`키오스크 QR 경로 전송 완료: ${kioskSelectedSpot.name.ko}`); setTimeout(() => setQrSyncedToast(null), 3500); openInMap(kioskSelectedSpot, true, 5); }}
+                    className="w-full py-3 rounded-2xl bg-[#4F46E5] text-white text-xs font-black"
+                  >
+                    Simulate QR Scan → Open in Mobile App
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* QR LANDMARK MODE */}
+          {platformMode === 'qr' && (
+            <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-indigo-100 overflow-hidden">
+              <div className="relative h-48">
+                <SafePhoto src={qrLandmarkSpot.photo} alt={qrLandmarkSpot.name.en} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent" />
+                <div className="absolute bottom-4 left-4 text-white">
+                  <h2 className="text-2xl font-black">{qrLandmarkSpot.name[lang] || qrLandmarkSpot.name.en}</h2>
+                  <p className="text-xs text-slate-200">{qrLandmarkSpot.address}</p>
+                </div>
+              </div>
+              <div className="p-5 space-y-3">
+                <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+                  {ATTRACTIONS.map((sp) => (
+                    <button key={sp.id} onClick={() => setQrLandmarkSpot(sp)} className={`px-3 py-1.5 rounded-full text-xs font-extrabold ${qrLandmarkSpot.id === sp.id ? 'bg-[#4F46E5] text-white' : 'bg-slate-100 text-slate-700'}`}>
+                      QR: {sp.name[lang] || sp.name.en}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-700 bg-indigo-50/70 p-4 rounded-2xl">{qrLandmarkSpot.summary[lang] || qrLandmarkSpot.summary.en}</p>
+                <p className="text-xs text-purple-900 bg-purple-50 p-3.5 rounded-2xl">🎬 {qrLandmarkSpot.kContent}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
